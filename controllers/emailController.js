@@ -1,4 +1,5 @@
 const emailService = require('../utils/emailService');
+const Contact = require('../models/Contact');
 
 const emailController = {
   async sendContactForm(req, res) {
@@ -21,26 +22,83 @@ const emailController = {
         });
       }
 
-      const result = await emailService.sendContactFormEmail({
+      const ipAddress = getClientIpAddress(req);
+      const userAgent = req.get('User-Agent') || 'Unknown';
+
+      const contactData = {
         name: sanitizeInput(name),
-        email: sanitizeInput(email),
+        email: sanitizeInput(email).toLowerCase(),
         message: sanitizeInput(message),
-        subject: subject ? sanitizeInput(subject) : undefined
-      });
+        subject: subject ? sanitizeInput(subject) : 'Contact Form Submission',
+        ipAddress,
+        userAgent
+      };
+
+      const existingContact = await Contact.findByEmail(contactData.email);
+      if (existingContact) {
+        return res.status(400).json({
+          success: false,
+          error: 'Duplicate Submission',
+          message: 'A contact form with this email has already been submitted'
+        });
+      }
+
+      let emailResult;
+      let contact;
+
+      try {
+        emailResult = await emailService.sendContactFormEmail(contactData);
+        
+        contact = new Contact({
+          ...contactData,
+          emailSent: true,
+          emailMessageId: emailResult.messageId
+        });
+
+        await contact.save();
+        
+        console.log(`✅ Contact form saved to database: ${contact._id}`);
+
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError.message);
+        
+        contact = new Contact({
+          ...contactData,
+          emailSent: false
+        });
+
+        await contact.save();
+        
+        return res.status(500).json({
+          success: false,
+          error: 'Email Service Error',
+          message: 'Contact form saved but email failed to send. We will contact you soon.',
+          contactId: contact._id
+        });
+      }
 
       res.status(200).json({
         success: true,
         message: 'Contact form submitted successfully',
-        messageId: result.messageId
+        contactId: contact._id,
+        messageId: emailResult.messageId
       });
 
     } catch (error) {
       console.error('Contact form submission error:', error.message);
       
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({
+          success: false,
+          error: 'Validation Error',
+          message: error.message
+        });
+      }
+      
       res.status(500).json({
         success: false,
-        error: 'Email Service Error',
-        message: 'Failed to send contact form. Please try again later.',
+        error: 'Server Error',
+        message: 'Failed to process contact form. Please try again later.',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
@@ -150,6 +208,17 @@ function sanitizeInput(input) {
     .trim()
     .replace(/[<>]/g, '')
     .substring(0, 1000);
+}
+
+function getClientIpAddress(req) {
+  return req.ip ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+    req.headers['x-forwarded-for']?.split(',')[0] ||
+    req.headers['x-real-ip'] ||
+    req.headers['x-client-ip'] ||
+    '127.0.0.1';
 }
 
 module.exports = emailController;
