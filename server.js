@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const emailRoutes = require('./routes/emailRoutes');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -26,6 +28,13 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Email routes
+app.use('/api/email', emailRoutes);
+
+// Error handling middleware
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
