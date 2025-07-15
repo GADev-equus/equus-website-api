@@ -1,6 +1,6 @@
 # Equus Website API
 
-Node.js/Express backend API for the Equus website.
+Node.js/Express backend API for the Equus website with comprehensive authentication system.
 
 ## Quick Start
 
@@ -19,58 +19,119 @@ The server will run on **port 8000** by default.
 
 ## Environment Setup
 
-1. Copy `sample.env` to `.env`:
-   ```bash
-   cp sample.env .env
-   ```
-
-2. Update the `.env` file with your configuration:
-   ```
+1. Update the `.env` file with your configuration:
+   ```env
+   # Server Configuration
    PORT=8000
    NODE_ENV=development
+   
+   # Database
    MONGODB_URI=mongodb://localhost:27017/equus-website
+   
+   # JWT Configuration
+   JWT_SECRET=your-super-secret-jwt-key-here-at-least-32-characters-long
+   JWT_REFRESH_SECRET=your-refresh-token-secret-here-at-least-32-characters-long
+   JWT_EXPIRES_IN=24h
+   JWT_REFRESH_EXPIRES_IN=7d
+   
+   # Security
+   BCRYPT_SALT_ROUNDS=12
+   ACCOUNT_LOCKOUT_ATTEMPTS=5
+   ACCOUNT_LOCKOUT_DURATION=30
+   
+   # Email Configuration
    EMAIL_HOST=smtp.gmail.com
    EMAIL_PORT=587
    EMAIL_USER=your-email@gmail.com
    EMAIL_PASS=your-app-password
    EMAIL_FROM=noreply@equus-website.com
+   
+   # Frontend URLs
+   FRONTEND_URL=http://localhost:5173
+   PASSWORD_RESET_URL=http://localhost:5173/reset-password
+   EMAIL_VERIFICATION_URL=http://localhost:5173/verify-email
+   
+   # Initial Admin User (Optional)
+   INITIAL_ADMIN_EMAIL=admin@equus-website.com
+   INITIAL_ADMIN_PASSWORD=SecureAdminPassword123!
    ```
 
 ## API Endpoints
 
 ### Health Check
 - `GET /` - API status and health check
-- `GET /health` - Health check endpoint (includes database status)
+- `GET /health` - Health check endpoint (includes database and auth status)
+
+### Authentication
+- `POST /api/auth/signup` - User registration with email verification
+- `POST /api/auth/signin` - User login with JWT token
+- `POST /api/auth/request-reset` - Request password reset token
+- `POST /api/auth/reset` - Reset password with token
+- `POST /api/auth/verify-email` - Verify email address
+- `POST /api/auth/refresh` - Refresh JWT token
+- `POST /api/auth/logout` - Logout and invalidate token
+
+### User Management
+- `GET /api/users/profile` - Get current user profile
+- `PUT /api/users/profile` - Update user profile
+- `PUT /api/users/password` - Change password
+- `DELETE /api/users/account` - Delete user account
+- `GET /api/users` - Admin: Get all users
+- `GET /api/users/:id` - Admin: Get user by ID
+- `PUT /api/users/:id/role` - Admin: Update user role
+- `PUT /api/users/:id/status` - Admin: Update user status
+- `GET /api/users/admin/stats` - Admin: Get user statistics
 
 ### Email Service
 - `POST /api/email/contact` - Contact form submission with database storage
 - `POST /api/email/send` - Generic email sending
 - `GET /api/email/status` - Email service health check
 
-See [docs/email_service.md](docs/email_service.md) for detailed email service documentation.
+## Documentation
+
+- [Authentication System](docs/auth.md) - Complete authentication documentation
+- [Email Service](docs/email_service.md) - Email service documentation
+- [Postman Testing Guide](docs/postman_testing_guide.md) - Step-by-step API testing guide
+- [Casual Visitors Analytics](docs/casual_visitors.md) - Analytics for anonymous users
+- [Registered Users Analytics](docs/registered_visitors.md) - Analytics for authenticated users
 
 ## Project Structure
 
 ```
 api/
-├── server.js           # Main server file
-├── package.json        # Dependencies and scripts
-├── .env               # Environment variables (create from sample.env)
-├── .gitignore         # Git ignore rules
+├── server.js                    # Main server file
+├── package.json                 # Dependencies and scripts
+├── .env                        # Environment variables
+├── .gitignore                  # Git ignore rules
 ├── config/
-│   └── dbConfig.js    # MongoDB connection configuration
+│   └── dbConfig.js            # MongoDB connection configuration
 ├── controllers/
-│   └── emailController.js # Email and contact form handlers
+│   ├── authController.js      # Authentication handlers
+│   ├── userController.js      # User management handlers
+│   └── emailController.js     # Email and contact form handlers
 ├── docs/
-│   └── email_service.md # Email service documentation
+│   ├── auth.md               # Authentication system documentation
+│   ├── email_service.md      # Email service documentation
+│   ├── postman_testing_guide.md # API testing guide
+│   ├── casual_visitors.md    # Casual visitor analytics plan
+│   └── registered_visitors.md # Registered user analytics plan
 ├── middleware/
-│   └── errorHandler.js # Error handling middleware
+│   ├── auth.js               # JWT authentication middleware
+│   ├── roles.js              # Role-based access control
+│   ├── rateLimiter.js        # Rate limiting middleware
+│   └── errorHandler.js       # Error handling middleware
 ├── models/
-│   └── Contact.js     # Contact form database model
+│   ├── User.js               # User model with authentication
+│   ├── Token.js              # Token model for auth tokens
+│   └── Contact.js            # Contact form database model
 ├── routes/
-│   └── emailRoutes.js # Email service routes
+│   ├── authRoutes.js         # Authentication routes
+│   ├── userRoutes.js         # User management routes
+│   └── emailRoutes.js        # Email service routes
 └── utils/
-    └── emailService.js # Email service utility
+    ├── authService.js        # Authentication utilities
+    ├── emailTemplates.js     # Email templates
+    └── emailService.js       # Email service utility
 ```
 
 ## Development
@@ -87,14 +148,43 @@ api/
 - **nodemon** - Development server with auto-restart
 - **mongoose** - MongoDB object modeling
 - **nodemailer** - Email sending service
+- **bcrypt** - Password hashing
+- **jsonwebtoken** - JWT token management
+- **express-rate-limit** - Rate limiting
+- **validator** - Input validation
+
+## Security Features
+
+- 🔐 **JWT Authentication** - Secure token-based authentication
+- 🔒 **Password Security** - Bcrypt hashing with salt
+- 🛡️ **Rate Limiting** - Prevent brute force attacks
+- 🔑 **Role-Based Access** - Admin and user roles
+- 📧 **Email Verification** - Secure email verification
+- 🔄 **Password Reset** - Secure password reset flow
+- 🚫 **Account Lockout** - Automatic account lockout after failed attempts
+- 🛡️ **Input Validation** - Comprehensive input validation
+- 🔍 **Security Headers** - Proper security headers
 
 ## API Features
 
+### Authentication System
+- ✅ User registration with email verification
+- ✅ Secure login with JWT tokens
+- ✅ Password reset with email tokens
+- ✅ Token refresh mechanism
+- ✅ Role-based access control (admin/user)
+- ✅ Account lockout after failed attempts
+- ✅ Rate limiting for security
+- ✅ Password strength validation
+- ✅ Email verification system
+- ✅ Secure logout with token invalidation
+
+### Core Features
 - ✅ Express server setup
 - ✅ CORS configuration
 - ✅ Environment variable support
 - ✅ JSON request/response handling
-- ✅ Health check endpoints (with database status)
+- ✅ Health check endpoints (with database and auth status)
 - ✅ MongoDB integration with Mongoose
 - ✅ Email service with Nodemailer
 - ✅ Contact form with database storage
@@ -102,19 +192,84 @@ api/
 - ✅ Error handling middleware
 - ✅ Organized folder structure with documentation
 
-## Implemented Features
+### User Management
+- ✅ User profile management
+- ✅ Password change functionality
+- ✅ Account deletion
+- ✅ Admin user management
+- ✅ User role elevation
+- ✅ User statistics and analytics
+- ✅ Account status management
 
-- ✅ Database connection (MongoDB)
-- ✅ Email service (Nodemailer)
-- ✅ Contact form with database storage
-- ✅ Error handling middleware
-- ✅ Input validation
-- ✅ IP address tracking
+## Testing
 
-## Next Steps
+Use the comprehensive [Postman Testing Guide](docs/postman_testing_guide.md) to test all endpoints systematically.
 
-- Add authentication middleware
-- Set up logging
-- Write tests
-- Add rate limiting
-- Implement user management
+### Quick Test
+```bash
+# Test server health
+curl http://localhost:8000/health
+
+# Test user registration
+curl -X POST http://localhost:8000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "password": "SecurePass123!"
+  }'
+```
+
+## Initial Admin User
+
+The system automatically creates an initial admin user on first startup if configured in environment variables:
+
+- **Email**: Set in `INITIAL_ADMIN_EMAIL`
+- **Password**: Set in `INITIAL_ADMIN_PASSWORD`
+
+## Rate Limiting
+
+The API implements rate limiting for security:
+
+- **Authentication endpoints**: 5 attempts per 15 minutes
+- **Password reset**: 3 attempts per hour
+- **Registration**: 3 attempts per hour
+- **General API**: 100 requests per 15 minutes
+- **Admin actions**: 50 requests per 5 minutes
+
+## Error Handling
+
+All endpoints return consistent error responses:
+
+```json
+{
+  "success": false,
+  "error": "Error Type",
+  "message": "Human-readable error message",
+  "details": "Technical details (development only)"
+}
+```
+
+## Production Deployment
+
+1. Set `NODE_ENV=production` in environment variables
+2. Configure secure JWT secrets
+3. Set up HTTPS
+4. Configure email service
+5. Set up MongoDB cluster
+6. Configure rate limiting for production traffic
+7. Set up monitoring and logging
+
+## Contributing
+
+1. Follow the existing code structure
+2. Add proper error handling
+3. Include rate limiting for new endpoints
+4. Add authentication middleware where needed
+5. Update documentation
+6. Write tests for new features
+
+## License
+
+This project is licensed under the ISC License.
