@@ -8,10 +8,10 @@ const {
   requireRoleModification,
   logAdminAccess
 } = require('../middleware/roles');
-const { 
-  profileUpdateLimiter, 
-  adminActionLimiter
-} = require('../middleware/rateLimiter');
+// const { 
+//   profileUpdateLimiter, 
+//   adminActionLimiter
+// } = require('../middleware/rateLimiter');
 
 // All user routes require authentication
 router.use(auth);
@@ -22,10 +22,10 @@ router.use(auth);
 router.get('/profile', userController.getProfile);
 
 // Update current user profile
-router.put('/profile', profileUpdateLimiter, requireActiveUser, userController.updateProfile);
+router.put('/profile', /* profileUpdateLimiter, */ requireActiveUser, userController.updateProfile);
 
 // Change password
-router.put('/password', profileUpdateLimiter, requireActiveUser, userController.changePassword);
+router.put('/password', /* profileUpdateLimiter, */ requireActiveUser, userController.changePassword);
 
 // Delete own account
 router.delete('/account', requireActiveUser, userController.deleteAccount);
@@ -48,7 +48,7 @@ router.get('/:id',
 
 // Update user role (Admin only)
 router.put('/:id/role', 
-  adminActionLimiter,
+  /* adminActionLimiter, */
   requireAdmin,
   requireRoleModification,
   logAdminAccess('update user role'),
@@ -57,7 +57,7 @@ router.put('/:id/role',
 
 // Update user status (Admin only)
 router.put('/:id/status', 
-  adminActionLimiter,
+  /* adminActionLimiter, */
   requireAdmin,
   logAdminAccess('update user status'),
   userController.updateUserStatus

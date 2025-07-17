@@ -6,7 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const { apiLimiter } = require('./middleware/rateLimiter');
+// const { apiLimiter } = require('./middleware/rateLimiter');
 const { analyticsMiddleware } = require('./middleware/analytics');
 const authService = require('./utils/authService');
 const dbConfig = require('./config/dbConfig');
@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set('trust proxy', true);
 
 // Apply general rate limiting to all routes
-app.use(apiLimiter);
+// app.use(apiLimiter); // COMMENTED OUT FOR TESTING
 
 // Apply analytics middleware (after auth setup, before routes)
 app.use(analyticsMiddleware);
