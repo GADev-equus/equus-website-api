@@ -136,7 +136,7 @@ class EmailTemplates {
 
   // Email verification template
   emailVerificationTemplate(user, verificationToken) {
-    const verificationLink = `${this.baseUrl}/verify-email?token=${verificationToken}`;
+    const verificationLink = `${this.baseUrl}/auth/verify-email?token=${verificationToken}`;
     
     return {
       subject: `Verify Your Email - ${this.brandName}`,
@@ -175,7 +175,7 @@ class EmailTemplates {
 
   // Password reset template
   passwordResetTemplate(user, resetToken) {
-    const resetLink = `${this.baseUrl}/reset-password?token=${resetToken}`;
+    const resetLink = `${this.baseUrl}/auth/reset-password?token=${resetToken}`;
     
     return {
       subject: `Password Reset Request - ${this.brandName}`,
@@ -331,7 +331,7 @@ class EmailTemplates {
 
   // Plain text fallback for email verification
   emailVerificationTextTemplate(user, verificationToken) {
-    const verificationLink = `${this.baseUrl}/verify-email?token=${verificationToken}`;
+    const verificationLink = `${this.baseUrl}/auth/verify-email?token=${verificationToken}`;
     
     return {
       subject: `Verify Your Email - ${this.brandName}`,
@@ -358,7 +358,7 @@ If you have any questions, please contact us at ${this.supportEmail}
 
   // Plain text fallback for password reset
   passwordResetTextTemplate(user, resetToken) {
-    const resetLink = `${this.baseUrl}/reset-password?token=${resetToken}`;
+    const resetLink = `${this.baseUrl}/auth/reset-password?token=${resetToken}`;
     
     return {
       subject: `Password Reset Request - ${this.brandName}`,
