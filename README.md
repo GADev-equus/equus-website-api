@@ -82,6 +82,12 @@ The server will run on **port 8000** by default.
 - `PUT /api/users/:id/status` - Admin: Update user status
 - `GET /api/users/admin/stats` - Admin: Get user statistics
 
+### Analytics (Admin Only)
+- `GET /api/analytics/overview` - Get analytics overview (page views, visitors, response times)
+- `GET /api/analytics/traffic` - Get traffic analytics (user types, methods, referrers)
+- `GET /api/analytics/performance` - Get page performance metrics
+- `GET /api/analytics/users` - Get authenticated user analytics
+
 ### Email Service
 - `POST /api/email/contact` - Contact form submission with database storage
 - `POST /api/email/send` - Generic email sending
@@ -91,6 +97,7 @@ The server will run on **port 8000** by default.
 
 - [Authentication System](docs/auth.md) - Complete authentication documentation
 - [Email Service](docs/email_service.md) - Email service documentation
+- [Page Views Analytics](docs/page_views.md) - Complete analytics system implementation
 - [Postman Testing Guide](docs/postman_testing_guide.md) - Step-by-step API testing guide
 - [Casual Visitors Analytics](docs/casual_visitors.md) - Analytics for anonymous users
 - [Registered Users Analytics](docs/registered_visitors.md) - Analytics for authenticated users
@@ -108,7 +115,8 @@ api/
 ├── controllers/
 │   ├── authController.js      # Authentication handlers
 │   ├── userController.js      # User management handlers
-│   └── emailController.js     # Email and contact form handlers
+│   ├── emailController.js     # Email and contact form handlers
+│   └── analyticsController.js # Analytics and page views handlers
 ├── docs/
 │   ├── auth.md               # Authentication system documentation
 │   ├── email_service.md      # Email service documentation
@@ -119,15 +127,18 @@ api/
 │   ├── auth.js               # JWT authentication middleware
 │   ├── roles.js              # Role-based access control
 │   ├── rateLimiter.js        # Rate limiting middleware
-│   └── errorHandler.js       # Error handling middleware
+│   ├── errorHandler.js       # Error handling middleware
+│   └── analytics.js          # Analytics collection middleware
 ├── models/
 │   ├── User.js               # User model with authentication
 │   ├── Token.js              # Token model for auth tokens
-│   └── Contact.js            # Contact form database model
+│   ├── Contact.js            # Contact form database model
+│   └── Analytics.js          # Analytics data model
 ├── routes/
 │   ├── authRoutes.js         # Authentication routes
 │   ├── userRoutes.js         # User management routes
-│   └── emailRoutes.js        # Email service routes
+│   ├── emailRoutes.js        # Email service routes
+│   └── analyticsRoutes.js    # Analytics endpoints
 └── utils/
     ├── authService.js        # Authentication utilities
     ├── emailTemplates.js     # Email templates
@@ -152,6 +163,7 @@ api/
 - **jsonwebtoken** - JWT token management
 - **express-rate-limit** - Rate limiting
 - **validator** - Input validation
+- **uuid** - Session ID generation for analytics
 
 ## Security Features
 
@@ -200,6 +212,16 @@ api/
 - ✅ User role elevation
 - ✅ User statistics and analytics
 - ✅ Account status management
+
+### Analytics System
+- ✅ Real-time page views tracking
+- ✅ Session-based visitor analytics
+- ✅ User authentication tracking
+- ✅ Performance monitoring (response times, error rates)
+- ✅ Admin-only analytics dashboard
+- ✅ Time-based analytics (1h, 24h, 7d, 30d, 90d)
+- ✅ Database optimization with proper indexing
+- ✅ Comprehensive analytics API endpoints
 
 ## Testing
 
