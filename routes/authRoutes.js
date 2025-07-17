@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { auth } = require('../middleware/auth');
-// const { 
-//   authLimiter, 
-//   passwordResetLimiter, 
-//   registrationLimiter, 
-//   emailVerificationLimiter,
-//   tokenRefreshLimiter
-// } = require('../middleware/rateLimiter');
+const { 
+  authLimiter, 
+  passwordResetLimiter, 
+  registrationLimiter, 
+  emailVerificationLimiter,
+  tokenRefreshLimiter
+} = require('../middleware/rateLimiter');
 
 // Public routes (no authentication required)
 

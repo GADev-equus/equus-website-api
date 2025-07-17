@@ -8,10 +8,10 @@ const {
   requireRoleModification,
   logAdminAccess
 } = require('../middleware/roles');
-// const { 
-//   profileUpdateLimiter, 
-//   adminActionLimiter
-// } = require('../middleware/rateLimiter');
+const { 
+  profileUpdateLimiter, 
+  adminActionLimiter
+} = require('../middleware/rateLimiter');
 
 // All user routes require authentication
 router.use(auth);
