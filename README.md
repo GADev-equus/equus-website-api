@@ -170,7 +170,7 @@ api/
 - 🔐 **JWT Authentication** - Secure token-based authentication
 - 🔒 **Password Security** - Bcrypt hashing with salt
 - 🛡️ **Rate Limiting** - Prevent brute force attacks
-- 🔑 **Role-Based Access** - Admin and user roles
+- 🔑 **Role-Based Access** - Admin and user roles with automatic redirect
 - 📧 **Email Verification** - Secure email verification
 - 🔄 **Password Reset** - Secure password reset flow
 - 🚫 **Account Lockout** - Automatic account lockout after failed attempts
@@ -184,7 +184,7 @@ api/
 - ✅ Secure login with JWT tokens
 - ✅ Password reset with email tokens
 - ✅ Token refresh mechanism
-- ✅ Role-based access control (admin/user)
+- ✅ Role-based access control (admin/user) with automatic dashboard routing
 - ✅ Account lockout after failed attempts
 - ✅ Rate limiting for security
 - ✅ Password strength validation
