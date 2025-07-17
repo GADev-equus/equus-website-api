@@ -4,8 +4,10 @@ const cors = require('cors');
 const emailRoutes = require('./routes/emailRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { analyticsMiddleware } = require('./middleware/analytics');
 const authService = require('./utils/authService');
 const dbConfig = require('./config/dbConfig');
 
@@ -44,6 +46,9 @@ app.set('trust proxy', true);
 // Apply general rate limiting to all routes
 app.use(apiLimiter);
 
+// Apply analytics middleware (after auth setup, before routes)
+app.use(analyticsMiddleware);
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ 
@@ -80,6 +85,7 @@ app.get('/health', async (req, res) => {
 app.use('/api/email', emailRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware
 app.use(notFoundHandler);
