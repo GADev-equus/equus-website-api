@@ -327,6 +327,36 @@ const analyticsController = {
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
+  },
+
+  // Public endpoint for page views count (no authentication required)
+  async getPublicPageViews(req, res) {
+    try {
+      const { period = '30d' } = req.query;
+      const { startDate, endDate } = getDateRange(period);
+      
+      const totalPageViews = await Analytics.getPageViews(startDate, endDate);
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          totalPageViews,
+          period: {
+            start: startDate,
+            end: endDate,
+            range: period
+          }
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Public page views error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch page views',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   }
 };
 

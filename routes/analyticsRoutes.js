@@ -5,7 +5,10 @@ const { auth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
 const { adminActionLimiter } = require('../middleware/rateLimiter');
 
-// All analytics routes require authentication and admin role
+// Public analytics route (no authentication required)
+router.get('/public/page-views', analyticsController.getPublicPageViews);
+
+// All other analytics routes require authentication and admin role
 router.use(auth);
 router.use(requireRole('admin'));
 // router.use(adminActionLimiter); // Rate limiting for admin actions - COMMENTED OUT FOR TESTING
