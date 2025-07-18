@@ -227,7 +227,8 @@ class AuthService {
   // Generate user response object (excluding sensitive data)
   generateUserResponse(user) {
     return {
-      id: user._id,
+      _id: user._id,
+      id: user._id, // Keep both for compatibility
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -235,11 +236,13 @@ class AuthService {
       avatar: user.avatar,
       bio: user.bio,
       role: user.role,
+      status: user.accountStatus, // Map accountStatus to status for frontend consistency
       emailVerified: user.emailVerified,
       registrationDate: user.registrationDate,
       lastLogin: user.lastLogin,
       isActive: user.isActive,
-      accountStatus: user.accountStatus
+      accountStatus: user.accountStatus,
+      createdAt: user.createdAt || user.registrationDate // Ensure createdAt is available
     };
   }
 
