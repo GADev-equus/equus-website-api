@@ -17,44 +17,7 @@ npm start
 
 The server will run on **port 8000** by default.
 
-## Environment Setup
 
-1. Update the `.env` file with your configuration:
-   ```env
-   # Server Configuration
-   PORT=8000
-   NODE_ENV=development
-   
-   # Database
-   MONGODB_URI=mongodb://localhost:27017/equus-website
-   
-   # JWT Configuration
-   JWT_SECRET=your-super-secret-jwt-key-here-at-least-32-characters-long
-   JWT_REFRESH_SECRET=your-refresh-token-secret-here-at-least-32-characters-long
-   JWT_EXPIRES_IN=24h
-   JWT_REFRESH_EXPIRES_IN=7d
-   
-   # Security
-   BCRYPT_SALT_ROUNDS=12
-   ACCOUNT_LOCKOUT_ATTEMPTS=5
-   ACCOUNT_LOCKOUT_DURATION=30
-   
-   # Email Configuration
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
-   EMAIL_FROM=noreply@equus-website.com
-   
-   # Frontend URLs
-   FRONTEND_URL=http://localhost:5173
-   PASSWORD_RESET_URL=http://localhost:5173/reset-password
-   EMAIL_VERIFICATION_URL=http://localhost:5173/verify-email
-   
-   # Initial Admin User (Optional)
-   INITIAL_ADMIN_EMAIL=admin@equus-website.com
-   INITIAL_ADMIN_PASSWORD=SecureAdminPassword123!
-   ```
 
 ## API Endpoints
 
