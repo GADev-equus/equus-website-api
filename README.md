@@ -88,6 +88,14 @@ The server will run on **port 8000** by default.
 - `GET /api/analytics/performance` - Get page performance metrics
 - `GET /api/analytics/users` - Get authenticated user analytics
 
+### Contact Management (Admin Only)
+- `GET /api/contacts` - Get all contacts with filtering and pagination
+- `GET /api/contacts/:id` - Get contact by ID
+- `PUT /api/contacts/:id/status` - Update contact status (pending/read/replied/archived)
+- `DELETE /api/contacts/:id` - Delete contact
+- `GET /api/contacts/stats` - Get contact statistics
+- `GET /api/contacts/recent` - Get recent contacts
+
 ### Email Service
 - `POST /api/email/contact` - Contact form submission with database storage
 - `POST /api/email/send` - Generic email sending
@@ -97,6 +105,7 @@ The server will run on **port 8000** by default.
 
 - [Authentication System](docs/auth.md) - Complete authentication documentation
 - [Email Service](docs/email_service.md) - Email service documentation
+- [Contact Management](docs/admin_contact_form.md) - Complete contact management system implementation
 - [Page Views Analytics](docs/page_views.md) - Complete analytics system implementation
 - [Postman Testing Guide](docs/postman_testing_guide.md) - Step-by-step API testing guide
 - [Casual Visitors Analytics](docs/casual_visitors.md) - Analytics for anonymous users
@@ -116,6 +125,7 @@ api/
 │   ├── authController.js      # Authentication handlers
 │   ├── userController.js      # User management handlers
 │   ├── emailController.js     # Email and contact form handlers
+│   ├── contactController.js   # Contact management handlers (admin)
 │   └── analyticsController.js # Analytics and page views handlers
 ├── docs/
 │   ├── auth.md               # Authentication system documentation
@@ -138,6 +148,7 @@ api/
 │   ├── authRoutes.js         # Authentication routes
 │   ├── userRoutes.js         # User management routes
 │   ├── emailRoutes.js        # Email service routes
+│   ├── contactRoutes.js      # Contact management routes (admin)
 │   └── analyticsRoutes.js    # Analytics endpoints
 └── utils/
     ├── authService.js        # Authentication utilities
@@ -222,6 +233,16 @@ api/
 - ✅ Time-based analytics (1h, 24h, 7d, 30d, 90d)
 - ✅ Database optimization with proper indexing
 - ✅ Comprehensive analytics API endpoints
+
+### Contact Management System
+- ✅ Complete contact form storage and management
+- ✅ Admin-only contact management endpoints
+- ✅ Status workflow management (pending/read/replied/archived)
+- ✅ Contact statistics and recent submissions
+- ✅ Full CRUD operations with proper validation
+- ✅ Role-based access control with authentication
+- ✅ Database integration with Contact model
+- ✅ Comprehensive error handling and validation
 
 ## Testing
 
