@@ -65,4 +65,10 @@ router.put('/admin/:id/approve', auth, requireAdmin, generalLimit, subdomainRequ
 // Deny a request (admin only)
 router.put('/admin/:id/deny', auth, requireAdmin, generalLimit, subdomainRequestController.denyRequest);
 
+// Fix expired approval (admin only) - temporary endpoint
+router.put('/admin/:id/fix-expiration', auth, requireAdmin, generalLimit, subdomainRequestController.fixExpiredApproval);
+
+// Clear all subdomain requests (admin only) - development/testing
+router.delete('/admin/clear-all', auth, requireAdmin, generalLimit, subdomainRequestController.clearAllRequests);
+
 module.exports = router;

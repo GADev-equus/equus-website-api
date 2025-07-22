@@ -78,7 +78,6 @@ const subdomainRequestController = {
         // Continue even if email fails
       }
 
-      console.log(`✅ Subdomain access request submitted: ${request.userId.email} -> ${subdomainId}`);
 
       res.status(201).json({
         success: true,
@@ -87,7 +86,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Submit request error:', error.message);
 
       // Handle duplicate request error
       if (error.message.includes('pending request')) {
@@ -140,7 +138,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Get my requests error:', error.message);
       
       res.status(500).json({
         success: false,
@@ -184,7 +181,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Get access status error:', error.message);
       
       res.status(500).json({
         success: false,
@@ -266,7 +262,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Get all requests error:', error.message);
       
       res.status(500).json({
         success: false,
@@ -312,7 +307,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Get pending requests error:', error.message);
       
       res.status(500).json({
         success: false,
@@ -388,7 +382,6 @@ const subdomainRequestController = {
         // Continue even if email fails
       }
 
-      console.log(`✅ Subdomain access request approved: ${request.userId.email} -> ${request.subdomainId}`);
 
       res.status(200).json({
         success: true,
@@ -397,7 +390,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Approve request error:', error.message);
       
       res.status(500).json({
         success: false,
@@ -473,7 +465,6 @@ const subdomainRequestController = {
         // Continue even if email fails
       }
 
-      console.log(`✅ Subdomain access request denied: ${request.userId.email} -> ${request.subdomainId}`);
 
       res.status(200).json({
         success: true,
@@ -482,7 +473,6 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Deny request error:', error.message);
       
       res.status(500).json({
         success: false,
@@ -516,12 +506,104 @@ const subdomainRequestController = {
       });
 
     } catch (error) {
-      console.error('Get request stats error:', error.message);
       
       res.status(500).json({
         success: false,
         error: 'Server Error',
         message: 'Failed to retrieve statistics',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
+
+  /**
+   * Admin: Fix expired approval (temporary endpoint)
+   * PUT /api/subdomain-requests/admin/:id/fix-expiration
+   */
+  async fixExpiredApproval(req, res) {
+    try {
+      // Ensure user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Access Denied',
+          message: 'Administrator privileges required'
+        });
+      }
+
+      const { id } = req.params;
+
+      // Find and update the expired approval
+      const request = await SubdomainRequest.findById(id);
+      if (!request) {
+        return res.status(404).json({
+          success: false,
+          error: 'Request Not Found',
+          message: 'The specified request was not found'
+        });
+      }
+
+      if (request.status !== 'approved') {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid Status',
+          message: 'Only approved requests can be fixed'
+        });
+      }
+
+      // Remove expiration date (make it permanent)
+      request.expiresAt = undefined;
+      await request.save();
+
+
+      res.status(200).json({
+        success: true,
+        message: 'Expiration date removed - access is now permanent',
+        request: request.toSafeObject()
+      });
+
+    } catch (error) {
+      
+      res.status(500).json({
+        success: false,
+        error: 'Server Error',
+        message: 'Failed to fix expired approval',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
+
+  /**
+   * Admin: Clear all subdomain requests (development/testing)
+   * DELETE /api/subdomain-requests/admin/clear-all
+   */
+  async clearAllRequests(req, res) {
+    try {
+      // Ensure user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Access Denied',
+          message: 'Administrator privileges required'
+        });
+      }
+
+      // Delete all subdomain requests
+      const result = await SubdomainRequest.deleteMany({});
+
+
+      res.status(200).json({
+        success: true,
+        message: `Successfully cleared ${result.deletedCount} subdomain request entries`,
+        deletedCount: result.deletedCount
+      });
+
+    } catch (error) {
+      
+      res.status(500).json({
+        success: false,
+        error: 'Server Error',
+        message: 'Failed to clear subdomain requests',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
