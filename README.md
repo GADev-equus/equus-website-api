@@ -59,6 +59,18 @@ The server will run on **port 8000** by default.
 - `GET /api/contacts/stats` - Get contact statistics
 - `GET /api/contacts/recent` - Get recent contacts
 
+### Subdomain Access Requests
+- `POST /api/subdomain-requests` - Submit new access request
+- `GET /api/subdomain-requests/my-requests` - Get user's own requests
+- `GET /api/subdomain-requests/access-status` - Check user's access status
+- `GET /api/subdomain-requests/admin/all` - Admin: Get all requests with filtering
+- `GET /api/subdomain-requests/admin/pending` - Admin: Get pending requests
+- `GET /api/subdomain-requests/admin/stats` - Admin: Get request statistics
+- `PUT /api/subdomain-requests/admin/:id/approve` - Admin: Approve a request
+- `PUT /api/subdomain-requests/admin/:id/deny` - Admin: Deny a request
+- `PUT /api/subdomain-requests/admin/:id/fix-expiration` - Admin: Fix expired approval
+- `DELETE /api/subdomain-requests/admin/clear-all` - Admin: Clear all requests
+
 ### Email Service
 - `POST /api/email/contact` - Contact form submission with database storage
 - `POST /api/email/send` - Generic email sending
@@ -89,6 +101,7 @@ api/
 │   ├── userController.js      # User management handlers
 │   ├── emailController.js     # Email and contact form handlers
 │   ├── contactController.js   # Contact management handlers (admin)
+│   ├── subdomainRequestController.js # Subdomain access request handlers
 │   └── analyticsController.js # Analytics and page views handlers
 ├── docs/
 │   ├── auth.md               # Authentication system documentation
@@ -106,12 +119,14 @@ api/
 │   ├── User.js               # User model with authentication
 │   ├── Token.js              # Token model for auth tokens
 │   ├── Contact.js            # Contact form database model
+│   ├── SubdomainRequest.js   # Subdomain access request model
 │   └── Analytics.js          # Analytics data model
 ├── routes/
 │   ├── authRoutes.js         # Authentication routes
 │   ├── userRoutes.js         # User management routes
 │   ├── emailRoutes.js        # Email service routes
 │   ├── contactRoutes.js      # Contact management routes (admin)
+│   ├── subdomainRequestRoutes.js # Subdomain access request routes
 │   └── analyticsRoutes.js    # Analytics endpoints
 └── utils/
     ├── authService.js        # Authentication utilities
@@ -206,6 +221,17 @@ api/
 - ✅ Role-based access control with authentication
 - ✅ Database integration with Contact model
 - ✅ Comprehensive error handling and validation
+
+### Subdomain Access Request System
+- ✅ Complete subdomain access request management
+- ✅ User request submission with validation
+- ✅ Admin approval/denial workflow with email notifications
+- ✅ Request statistics and status tracking
+- ✅ Role-based access control with rate limiting
+- ✅ Database integration with SubdomainRequest model
+- ✅ Email notifications for admin actions
+- ✅ Expiration date management and validation
+- ✅ Comprehensive error handling and security features
 
 ## Testing
 
