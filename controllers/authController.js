@@ -685,6 +685,121 @@ const authController = {
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
+  },
+
+  // Token validation for subdomain authentication
+  async validateToken(req, res) {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          success: false,
+          error: 'No Token',
+          message: 'No token provided or invalid format'
+        });
+      }
+
+      const token = authHeader.substring(7); // Remove "Bearer " prefix
+
+      // Verify JWT token
+      let decoded;
+      try {
+        decoded = authService.verifyToken(token);
+      } catch (tokenError) {
+        console.log(`❌ Token validation failed: ${tokenError.message}`);
+        
+        if (tokenError.name === 'TokenExpiredError') {
+          return res.status(401).json({
+            success: false,
+            error: 'Token Expired',
+            message: 'Token has expired. Please refresh or login again.'
+          });
+        } else if (tokenError.name === 'JsonWebTokenError') {
+          return res.status(401).json({
+            success: false,
+            error: 'Invalid Token',
+            message: 'Token is invalid or malformed.'
+          });
+        } else {
+          return res.status(401).json({
+            success: false,
+            error: 'Token Validation Failed',
+            message: 'Could not validate token.'
+          });
+        }
+      }
+
+      // Find user
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: 'User Not Found',
+          message: 'User associated with this token was not found'
+        });
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        return res.status(403).json({
+          success: false,
+          error: 'Account Inactive',
+          message: 'User account is inactive'
+        });
+      }
+
+      // Check if account is locked
+      if (user.isLocked) {
+        return res.status(403).json({
+          success: false,
+          error: 'Account Locked',
+          message: 'User account is temporarily locked'
+        });
+      }
+
+      // Check if account status allows access
+      if (user.accountStatus !== 'active') {
+        return res.status(403).json({
+          success: false,
+          error: 'Account Access Denied',
+          message: `Account status: ${user.accountStatus}`
+        });
+      }
+
+      // Generate safe user response for subdomain
+      const safeUser = authService.generateUserResponse(user);
+
+      // Log successful validation (for subdomain access audit)
+      const clientIP = authService.getClientIpAddress(req);
+      const userAgent = req.get('User-Agent');
+      console.log(`✅ Subdomain token validation successful: ${user.email} from IP: ${clientIP}`);
+
+      // Update last activity (optional - may cause performance issues on high traffic)
+      // await User.findByIdAndUpdate(user._id, { lastActivity: new Date() });
+
+      res.status(200).json({
+        success: true,
+        message: 'Token is valid',
+        user: safeUser,
+        validation: {
+          valid: true,
+          issuedAt: new Date(decoded.iat * 1000).toISOString(),
+          expiresAt: new Date(decoded.exp * 1000).toISOString(),
+          validatedAt: new Date().toISOString()
+        }
+      });
+
+    } catch (error) {
+      console.error('Token validation error:', error.message);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Server Error',
+        message: 'Failed to validate token. Please try again later.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
   }
 };
 

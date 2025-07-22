@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const subdomainRequestRoutes = require('./routes/subdomainRequestRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { analyticsMiddleware } = require('./middleware/analytics');
@@ -88,6 +89,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/subdomain-requests', subdomainRequestRoutes);
 
 // Error handling middleware
 app.use(notFoundHandler);
