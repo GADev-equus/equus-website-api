@@ -46,6 +46,9 @@ router.get('/my-requests', auth, generalLimit, subdomainRequestController.getMyR
 // Check user's access status
 router.get('/access-status', auth, generalLimit, subdomainRequestController.getAccessStatus);
 
+// Verify user's access to specific subdomain (for subdomain authentication)
+router.get('/verify-access/:subdomainId', auth, generalLimit, subdomainRequestController.verifySubdomainAccess);
+
 /**
  * Admin Routes - Admin authentication required
  */

@@ -192,6 +192,84 @@ const subdomainRequestController = {
   },
 
   /**
+   * Verify user's access to specific subdomain (for subdomain authentication)
+   * GET /api/subdomain-requests/verify-access/:subdomainId
+   */
+  async verifySubdomainAccess(req, res) {
+    try {
+      const { subdomainId } = req.params;
+      const userId = req.user._id;
+      const user = req.user;
+
+      // Validate subdomain exists
+      const validSubdomains = ['ai-trl', 'ai-tutot'];
+      if (!validSubdomains.includes(subdomainId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid Subdomain',
+          message: 'The requested subdomain does not exist'
+        });
+      }
+
+      // Check role-based access first
+      const subdomainConfig = {
+        'ai-trl': { allowedRoles: ['admin', 'user'], requireEmailVerification: true },
+        'ai-tutot': { allowedRoles: ['admin'], requireEmailVerification: true }
+      };
+
+      const config = subdomainConfig[subdomainId];
+      let hasRoleAccess = false;
+      let accessDenialReason = '';
+
+      // Check role permission
+      if (!config.allowedRoles.includes(user.role)) {
+        accessDenialReason = `Requires ${config.allowedRoles.join(' or ')} role (you have: ${user.role})`;
+      } else if (config.requireEmailVerification && !user.emailVerified) {
+        accessDenialReason = 'Email verification required';
+      } else if (!user.isActive || user.accountStatus !== 'active' || user.isLocked) {
+        accessDenialReason = 'Account is not active or is locked';
+      } else {
+        hasRoleAccess = true;
+      }
+
+      // Check for approved subdomain request if no role access
+      let hasApprovedAccess = false;
+      if (!hasRoleAccess) {
+        hasApprovedAccess = await SubdomainRequest.hasActiveAccess(userId, subdomainId);
+      }
+
+      const hasAccess = hasRoleAccess || hasApprovedAccess;
+      const accessMethod = hasRoleAccess ? 'role-based' : hasApprovedAccess ? 'request-approved' : 'none';
+
+      res.status(200).json({
+        success: true,
+        hasAccess,
+        accessMethod,
+        subdomainId,
+        userId: userId.toString(),
+        user: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          emailVerified: user.emailVerified
+        },
+        accessDenialReason: hasAccess ? null : accessDenialReason || 'Access not granted',
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      
+      res.status(500).json({
+        success: false,
+        error: 'Server Error',
+        message: 'Failed to verify subdomain access',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
+
+  /**
    * Admin: Get all requests with filtering
    * GET /api/subdomain-requests/admin/all
    */
