@@ -31,7 +31,7 @@ router.post('/verify-email', /* emailVerificationLimiter, */ authController.veri
 router.post('/refresh', /* tokenRefreshLimiter, */ authController.refreshToken);
 
 // Token validation for subdomains (public endpoint for subdomain authentication)
-router.post('/validate', authController.validateToken);
+router.get('/validate-token', authController.validateToken);
 
 // Protected routes (authentication required)
 

@@ -751,17 +751,23 @@ const authController = {
   // Token validation for subdomain authentication
   async validateToken(req, res) {
     try {
-      const authHeader = req.headers.authorization;
+      // Check for token in cookies first (for subdomain authentication), then Authorization header
+      let token = req.cookies?.auth_token;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      if (!token) {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7); // Remove "Bearer " prefix
+        }
+      }
+      
+      if (!token) {
         return res.status(401).json({
           success: false,
           error: 'No Token',
-          message: 'No token provided or invalid format'
+          message: 'No token provided in cookies or authorization header'
         });
       }
-
-      const token = authHeader.substring(7); // Remove "Bearer " prefix
 
       // Verify JWT token
       let decoded;
