@@ -50,8 +50,13 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Trust proxy to get real IP addresses
-app.set('trust proxy', true);
+// Trust proxy configuration for Render.com deployment
+// Only trust the first proxy (Render.com's load balancer)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // Trust only the first proxy (Render.com)
+} else {
+  app.set('trust proxy', false); // Don't trust proxy in development
+}
 
 // Apply general rate limiting to all routes
 // app.use(apiLimiter); // COMMENTED OUT FOR TESTING

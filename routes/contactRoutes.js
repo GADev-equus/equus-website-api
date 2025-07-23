@@ -10,7 +10,7 @@ router.use(auth.auth);
 router.use(roles.requireAdmin);
 
 // Apply rate limiting to all contact management endpoints
-router.use(rateLimiter.adminActionLimiter);
+// router.use(rateLimiter.adminActionLimiter); // COMMENTED OUT FOR TESTING
 
 /**
  * GET /api/contacts

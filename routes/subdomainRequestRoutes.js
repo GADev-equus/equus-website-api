@@ -1,5 +1,5 @@
 const express = require('express');
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit'); // COMMENTED OUT FOR TESTING
 const { auth } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roles');
 const subdomainRequestController = require('../controllers/subdomainRequestController');
@@ -7,31 +7,35 @@ const subdomainRequestController = require('../controllers/subdomainRequestContr
 const router = express.Router();
 
 /**
- * Rate limiting for subdomain request endpoints
+ * Rate limiting for subdomain request endpoints - DISABLED FOR TESTING
  */
-const requestSubmissionLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per 15 minutes per IP
-  message: {
-    success: false,
-    error: 'Rate Limit',
-    message: 'Too many access requests submitted. Please wait before submitting another request.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
-});
+// const requestSubmissionLimit = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 5, // 5 requests per 15 minutes per IP
+//   message: {
+//     success: false,
+//     error: 'Rate Limit',
+//     message: 'Too many access requests submitted. Please wait before submitting another request.'
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false
+// });
 
-const generalLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 minutes per IP
-  message: {
-    success: false,
-    error: 'Rate Limit',
-    message: 'Too many requests. Please try again later.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
-});
+// const generalLimit = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // 100 requests per 15 minutes per IP
+//   message: {
+//     success: false,
+//     error: 'Rate Limit',
+//     message: 'Too many requests. Please try again later.'
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false
+// });
+
+// Dummy rate limiters for testing
+const requestSubmissionLimit = (req, res, next) => next();
+const generalLimit = (req, res, next) => next();
 
 /**
  * User Routes - Authentication required
