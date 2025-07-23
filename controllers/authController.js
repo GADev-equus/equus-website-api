@@ -164,7 +164,7 @@ const authController = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       res.cookie('auth_token', token, cookieOptions);
@@ -300,8 +300,15 @@ const authController = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: cookieMaxAge,
-        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        // Don't set domain - let browser handle it based on request origin
+        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
+
+      console.log('🍪 Setting JWT cookie with options:', {
+        ...cookieOptions,
+        NODE_ENV: process.env.NODE_ENV,
+        tokenLength: token.length
+      });
 
       res.cookie('auth_token', token, cookieOptions);
       res.cookie('refresh_token', refreshToken, {
@@ -680,7 +687,7 @@ const authController = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       res.cookie('auth_token', newToken, cookieOptions);
@@ -723,7 +730,7 @@ const authController = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       res.clearCookie('auth_token', cookieClearOptions);
@@ -750,18 +757,38 @@ const authController = {
 
   // Token validation for subdomain authentication
   async validateToken(req, res) {
+    console.log('🔍 validateToken endpoint called at:', new Date().toISOString());
+    
     try {
+      // Debug logging for token validation
+      console.log('Token validation request:', {
+        cookies: req.cookies,
+        authHeader: req.headers.authorization,
+        origin: req.headers.origin,
+        userAgent: req.headers['user-agent'],
+        allHeaders: Object.keys(req.headers)
+      });
+      
       // Check for token in cookies first (for subdomain authentication), then Authorization header
       let token = req.cookies?.auth_token;
+      let tokenSource = 'cookie';
       
       if (!token) {
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
           token = authHeader.substring(7); // Remove "Bearer " prefix
+          tokenSource = 'header';
         }
       }
       
+      console.log('Token extraction result:', {
+        hasToken: !!token,
+        tokenSource: token ? tokenSource : 'none',
+        tokenLength: token ? token.length : 0
+      });
+      
       if (!token) {
+        console.log('❌ No token found in cookies or authorization header');
         return res.status(401).json({
           success: false,
           error: 'No Token',

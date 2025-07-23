@@ -33,6 +33,19 @@ router.post('/refresh', /* tokenRefreshLimiter, */ authController.refreshToken);
 // Token validation for subdomains (public endpoint for subdomain authentication)
 router.get('/validate-token', authController.validateToken);
 
+// Debug endpoint to check cookies (temporary)
+router.get('/debug-cookies', (req, res) => {
+  res.json({
+    cookies: req.cookies,
+    headers: {
+      origin: req.headers.origin,
+      'user-agent': req.headers['user-agent'],
+      authorization: req.headers.authorization
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Protected routes (authentication required)
 
 // User logout
