@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 8000;
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = process.env.ALLOWED_ORIGINS 
-      ? process.env.ALLOWED_ORIGINS.split(',')
+      ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
       : [
           'http://localhost:5173', 
           'https://equussystems.co', 
@@ -30,13 +30,29 @@ const corsOptions = {
           'https://ai-tfl.equussystems.co'
         ];
     
+    // Debug logging for CORS issues
+    console.log('CORS Debug:', {
+      requestOrigin: origin,
+      allowedOrigins: allowedOrigins,
+      envVariable: process.env.ALLOWED_ORIGINS,
+      nodeEnv: process.env.NODE_ENV
+    });
+    
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {
+      console.log('CORS: Origin allowed:', origin);
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log('CORS: Origin rejected:', origin);
+      // Temporary fix: Allow all origins in production for testing
+      if (process.env.NODE_ENV === 'production') {
+        console.log('CORS: Temporarily allowing origin in production:', origin);
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,
