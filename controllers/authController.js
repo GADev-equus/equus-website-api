@@ -769,16 +769,17 @@ const authController = {
         allHeaders: Object.keys(req.headers)
       });
       
-      // Check for token in cookies first (for subdomain authentication), then Authorization header
-      let token = req.cookies?.auth_token;
-      let tokenSource = 'cookie';
+      // Check for token in Authorization header first, then cookies
+      let token = null;
+      let tokenSource = 'none';
       
-      if (!token) {
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-          token = authHeader.substring(7); // Remove "Bearer " prefix
-          tokenSource = 'header';
-        }
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+        tokenSource = 'header';
+      } else if (req.cookies?.auth_token) {
+        token = req.cookies.auth_token;
+        tokenSource = 'cookie';
       }
       
       console.log('Token extraction result:', {
