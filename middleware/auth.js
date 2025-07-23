@@ -4,25 +4,32 @@ const User = require('../models/User');
 // Main authentication middleware
 const auth = async (req, res, next) => {
   try {
-    // Extract token from Authorization header
-    const authHeader = req.header('Authorization');
-    
-    if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        error: 'Access Denied',
-        message: 'No authorization header provided'
-      });
-    }
+    let token;
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        error: 'Access Denied',
-        message: 'No token provided'
-      });
+    // Check for token in cookies first (for subdomain access)
+    if (req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    } else {
+      // Fallback to Authorization header
+      const authHeader = req.header('Authorization');
+      
+      if (!authHeader) {
+        return res.status(401).json({
+          success: false,
+          error: 'Access Denied',
+          message: 'No authorization token provided'
+        });
+      }
+
+      token = authHeader.replace('Bearer ', '');
+      
+      if (!token) {
+        return res.status(401).json({
+          success: false,
+          error: 'Access Denied',
+          message: 'No token provided'
+        });
+      }
     }
 
     // Verify the token
@@ -102,16 +109,24 @@ const auth = async (req, res, next) => {
 // Optional authentication middleware (doesn't fail if no token)
 const optionalAuth = async (req, res, next) => {
   try {
-    const authHeader = req.header('Authorization');
-    
-    if (!authHeader) {
-      return next();
-    }
+    let token;
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    if (!token) {
-      return next();
+    // Check for token in cookies first (for subdomain access)
+    if (req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    } else {
+      // Fallback to Authorization header
+      const authHeader = req.header('Authorization');
+      
+      if (!authHeader) {
+        return next();
+      }
+
+      token = authHeader.replace('Bearer ', '');
+      
+      if (!token) {
+        return next();
+      }
     }
 
     // Verify the token

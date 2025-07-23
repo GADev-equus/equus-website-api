@@ -158,6 +158,21 @@ const authController = {
 
       console.log(`✅ User registered successfully: ${user.email}`);
 
+      // Set secure HTTP-only cookies for subdomain access
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+      };
+
+      res.cookie('auth_token', token, cookieOptions);
+      res.cookie('refresh_token', refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days for refresh token
+      });
+
       res.status(201).json({
         success: true,
         message: 'User registered successfully. Please check your email to verify your account.',
@@ -277,6 +292,22 @@ const authController = {
       );
 
       console.log(`✅ User logged in successfully: ${user.email}`);
+
+      // Set secure HTTP-only cookies for subdomain access
+      const cookieMaxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // 7 days or 24 hours
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: cookieMaxAge,
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+      };
+
+      res.cookie('auth_token', token, cookieOptions);
+      res.cookie('refresh_token', refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days for refresh token
+      });
 
       res.status(200).json({
         success: true,
@@ -584,7 +615,11 @@ const authController = {
   // Refresh token
   async refreshToken(req, res) {
     try {
-      const { refreshToken } = req.body;
+      const { refreshToken: bodyRefreshToken } = req.body;
+      const cookieRefreshToken = req.cookies.refresh_token;
+
+      // Get refresh token from body or cookie
+      const refreshToken = bodyRefreshToken || cookieRefreshToken;
 
       // Validate refresh token
       if (!refreshToken) {
@@ -639,6 +674,21 @@ const authController = {
 
       console.log(`✅ Token refreshed successfully for: ${user.email}`);
 
+      // Set secure HTTP-only cookies for subdomain access
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+      };
+
+      res.cookie('auth_token', newToken, cookieOptions);
+      res.cookie('refresh_token', newRefreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days for refresh token
+      });
+
       res.status(200).json({
         success: true,
         token: newToken,
@@ -667,6 +717,17 @@ const authController = {
       if (refreshToken) {
         await Token.revokeUserTokens(req.user._id, 'refresh');
       }
+
+      // Clear HTTP-only cookies
+      const cookieClearOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+      };
+
+      res.clearCookie('auth_token', cookieClearOptions);
+      res.clearCookie('refresh_token', cookieClearOptions);
 
       console.log(`✅ User logged out successfully: ${req.user.email}`);
 
