@@ -801,7 +801,7 @@ const authController = {
       let decoded;
       try {
         decoded = authService.verifyToken(token);
-        console.log('🔍 Token decoded successfully:', { userId: decoded.userId, iat: decoded.iat, exp: decoded.exp });
+        console.log('🔍 Token decoded successfully:', { userId: decoded.id || decoded.userId, iat: decoded.iat, exp: decoded.exp });
       } catch (tokenError) {
         console.log(`❌ Token validation failed: ${tokenError.message}`);
         
@@ -827,10 +827,10 @@ const authController = {
       }
 
       // Find user
-      console.log('🔍 Looking for user with ID:', decoded.userId);
-      const user = await User.findById(decoded.userId);
+      console.log('🔍 Looking for user with ID:', decoded.id || decoded.userId);
+      const user = await User.findById(decoded.id || decoded.userId);
       if (!user) {
-        console.log('❌ User not found in database for ID:', decoded.userId);
+        console.log('❌ User not found in database for ID:', decoded.id || decoded.userId);
         
         // Let's also check if any users exist in the database
         const userCount = await User.countDocuments();
@@ -841,7 +841,7 @@ const authController = {
           error: 'User Not Found',
           message: 'User associated with this token was not found',
           debug: {
-            tokenUserId: decoded.userId,
+            tokenUserId: decoded.id || decoded.userId,
             totalUsers: userCount
           }
         });
