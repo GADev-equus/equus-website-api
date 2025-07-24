@@ -30,25 +30,16 @@ const corsOptions = {
           'https://ai-tfl.equussystems.co'
         ];
     
-    // Debug logging for CORS issues
-    console.log('CORS Debug:', {
-      requestOrigin: origin,
-      allowedOrigins: allowedOrigins,
-      envVariable: process.env.ALLOWED_ORIGINS,
-      nodeEnv: process.env.NODE_ENV
-    });
+    // CORS origin validation
     
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {
-      console.log('CORS: Origin allowed:', origin);
       callback(null, true);
     } else {
-      console.log('CORS: Origin rejected:', origin);
       // Temporary fix: Allow all origins in production for testing
       if (process.env.NODE_ENV === 'production') {
-        console.log('CORS: Temporarily allowing origin in production:', origin);
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

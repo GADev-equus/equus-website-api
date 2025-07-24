@@ -304,11 +304,6 @@ const authController = {
         domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
-      console.log('🍪 Setting JWT cookie with options:', {
-        ...cookieOptions,
-        NODE_ENV: process.env.NODE_ENV,
-        tokenLength: token.length
-      });
 
       res.cookie('auth_token', token, cookieOptions);
       res.cookie('refresh_token', refreshToken, {
@@ -757,17 +752,7 @@ const authController = {
 
   // Token validation for subdomain authentication
   async validateToken(req, res) {
-    console.log('🔍 validateToken endpoint called at:', new Date().toISOString());
-    
     try {
-      // Debug logging for token validation
-      console.log('Token validation request:', {
-        cookies: req.cookies,
-        authHeader: req.headers.authorization,
-        origin: req.headers.origin,
-        userAgent: req.headers['user-agent'],
-        allHeaders: Object.keys(req.headers)
-      });
       
       // Check for token in Authorization header first, then cookies
       let token = null;
@@ -782,14 +767,8 @@ const authController = {
         tokenSource = 'cookie';
       }
       
-      console.log('Token extraction result:', {
-        hasToken: !!token,
-        tokenSource: token ? tokenSource : 'none',
-        tokenLength: token ? token.length : 0
-      });
       
       if (!token) {
-        console.log('❌ No token found in cookies or authorization header');
         return res.status(401).json({
           success: false,
           error: 'No Token',
@@ -801,9 +780,7 @@ const authController = {
       let decoded;
       try {
         decoded = authService.verifyToken(token);
-        console.log('🔍 Token decoded successfully:', { userId: decoded.id || decoded.userId, iat: decoded.iat, exp: decoded.exp });
       } catch (tokenError) {
-        console.log(`❌ Token validation failed: ${tokenError.message}`);
         
         if (tokenError.name === 'TokenExpiredError') {
           return res.status(401).json({
@@ -827,14 +804,9 @@ const authController = {
       }
 
       // Find user
-      console.log('🔍 Looking for user with ID:', decoded.id || decoded.userId);
       const user = await User.findById(decoded.id || decoded.userId);
       if (!user) {
-        console.log('❌ User not found in database for ID:', decoded.id || decoded.userId);
-        
-        // Let's also check if any users exist in the database
         const userCount = await User.countDocuments();
-        console.log('📊 Total users in database:', userCount);
         
         return res.status(404).json({
           success: false,
@@ -847,7 +819,6 @@ const authController = {
         });
       }
       
-      console.log('✅ User found:', { id: user._id, email: user.email, role: user.role });
 
       // Check if user is active
       if (!user.isActive) {
@@ -882,7 +853,6 @@ const authController = {
       // Log successful validation (for subdomain access audit)
       const clientIP = authService.getClientIpAddress(req);
       const userAgent = req.get('User-Agent');
-      console.log(`✅ Subdomain token validation successful: ${user.email} from IP: ${clientIP}`);
 
       // Update last activity (optional - may cause performance issues on high traffic)
       // await User.findByIdAndUpdate(user._id, { lastActivity: new Date() });
