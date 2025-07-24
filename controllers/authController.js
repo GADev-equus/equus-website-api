@@ -164,7 +164,7 @@ const authController = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       res.cookie('auth_token', token, cookieOptions);
@@ -300,8 +300,8 @@ const authController = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: cookieMaxAge,
-        // Don't set domain - let browser handle it based on request origin
-        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        // Enable subdomain sharing in production
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       console.log('🍪 Setting JWT cookie with options:', {
@@ -687,7 +687,7 @@ const authController = {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       res.cookie('auth_token', newToken, cookieOptions);
@@ -730,7 +730,7 @@ const authController = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        // domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
+        domain: process.env.NODE_ENV === 'production' ? '.equussystems.co' : undefined
       };
 
       res.clearCookie('auth_token', cookieClearOptions);
