@@ -551,21 +551,194 @@ const userController = {
   // Get user statistics (Admin only)
   async getUserStats(req, res) {
     try {
-      const [userStats, totalUsers, recentUsers] = await Promise.all([
+      const { period = '7d' } = req.query;
+      
+      // Calculate date ranges
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      // Get period start date for analytics
+      let analyticsStartDate;
+      switch (period) {
+        case '1h':
+          analyticsStartDate = new Date(now.getTime() - 60 * 60 * 1000);
+          break;
+        case '24h':
+          analyticsStartDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case '7d':
+          analyticsStartDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30d':
+          analyticsStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case '90d':
+          analyticsStartDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          analyticsStartDate = startOfWeek;
+      }
+      
+      // Import Analytics model
+      const Analytics = require('../models/Analytics');
+      
+      const [
+        userStats,
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        suspendedUsers,
+        adminUsers,
+        newUsersToday,
+        newUsersThisWeek,
+        newUsersThisMonth,
+        recentUsers,
+        // Analytics-based metrics
+        loginMetrics,
+        userAgentStats,
+        sessionMetrics
+      ] = await Promise.all([
         User.getUserStats(),
         User.countDocuments(),
+        User.countDocuments({ isActive: true }),
+        User.countDocuments({ isActive: false }),
+        User.countDocuments({ status: 'suspended' }),
+        User.countDocuments({ role: 'admin' }),
+        User.countDocuments({ createdAt: { $gte: today } }),
+        User.countDocuments({ createdAt: { $gte: startOfWeek } }),
+        User.countDocuments({ createdAt: { $gte: startOfMonth } }),
         User.find({ isActive: true })
           .select('-password')
           .sort({ createdAt: -1 })
-          .limit(5)
+          .limit(5),
+        // Get login-related analytics (POST requests to auth endpoints)
+        Analytics.aggregate([
+          { 
+            $match: { 
+              timestamp: { $gte: analyticsStartDate, $lte: now },
+              method: 'POST',
+              path: { $in: ['/signin', '/signup', '/logout'] }
+            }
+          },
+          {
+            $group: {
+              _id: '$path',
+              count: { $sum: 1 },
+              successCount: { $sum: { $cond: [{ $lt: ['$statusCode', 400] }, 1, 0] } },
+              failureCount: { $sum: { $cond: [{ $gte: ['$statusCode', 400] }, 1, 0] } }
+            }
+          }
+        ]),
+        // Get top user agents
+        Analytics.aggregate([
+          { 
+            $match: { 
+              timestamp: { $gte: analyticsStartDate, $lte: now },
+              userId: { $ne: null }
+            }
+          },
+          {
+            $group: {
+              _id: '$userAgent',
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { count: -1 } },
+          { $limit: 5 },
+          {
+            $project: {
+              name: {
+                $cond: [
+                  { $regexMatch: { input: '$_id', regex: /Chrome/i } }, 'Chrome',
+                  { $cond: [
+                    { $regexMatch: { input: '$_id', regex: /Firefox/i } }, 'Firefox',
+                    { $cond: [
+                      { $regexMatch: { input: '$_id', regex: /Safari/i } }, 'Safari',
+                      { $cond: [
+                        { $regexMatch: { input: '$_id', regex: /Edge/i } }, 'Edge',
+                        'Other'
+                      ]}
+                    ]}
+                  ]}
+                ]
+              },
+              count: 1
+            }
+          }
+        ]),
+        // Calculate session metrics
+        Analytics.aggregate([
+          { 
+            $match: { 
+              timestamp: { $gte: analyticsStartDate, $lte: now },
+              userId: { $ne: null }
+            }
+          },
+          {
+            $group: {
+              _id: { userId: '$userId', sessionId: '$sessionId' },
+              firstActivity: { $min: '$timestamp' },
+              lastActivity: { $max: '$timestamp' },
+              activityCount: { $sum: 1 }
+            }
+          },
+          {
+            $project: {
+              sessionDuration: { 
+                $divide: [
+                  { $subtract: ['$lastActivity', '$firstActivity'] }, 
+                  60000  // Convert to minutes
+                ]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              avgSessionTime: { $avg: '$sessionDuration' },
+              totalSessions: { $sum: 1 }
+            }
+          }
+        ])
       ]);
+
+      // Process login metrics
+      let totalLogins = 0;
+      let failedLogins = 0;
+      
+      loginMetrics.forEach(metric => {
+        if (metric._id === '/signin') {
+          totalLogins += metric.successCount;
+          failedLogins += metric.failureCount;
+        }
+      });
+
+      // Process session metrics
+      const avgSessionTime = sessionMetrics.length > 0 
+        ? Math.round(sessionMetrics[0].avgSessionTime || 0) 
+        : 0;
 
       res.status(200).json({
         success: true,
         stats: {
           totalUsers,
+          activeUsers,
+          inactiveUsers,
+          suspendedUsers,
+          adminUsers,
+          newUsersToday,
+          newUsersThisWeek,
+          newUsersThisMonth,
           usersByRole: userStats,
-          recentUsers: recentUsers.map(user => authService.generateUserResponse(user))
+          recentUsers: recentUsers.map(user => authService.generateUserResponse(user)),
+          // Real system metrics from analytics data
+          totalLogins,
+          failedLogins,
+          avgSessionTime,
+          topUserAgents: userAgentStats,
+          topLocations: [] // Implement geo-location tracking later if needed
         }
       });
 
