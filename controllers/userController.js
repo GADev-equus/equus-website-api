@@ -598,7 +598,8 @@ const userController = {
         // Analytics-based metrics
         loginMetrics,
         userAgentStats,
-        sessionMetrics
+        sessionMetrics,
+        locationStats
       ] = await Promise.all([
         User.getUserStats(),
         User.countDocuments(),
@@ -701,8 +702,44 @@ const userController = {
               totalSessions: { $sum: 1 }
             }
           }
+        ]),
+        // Get top locations from IP addresses
+        Analytics.aggregate([
+          { 
+            $match: { 
+              timestamp: { $gte: analyticsStartDate, $lte: now },
+              userId: { $ne: null }
+            }
+          },
+          {
+            $group: {
+              _id: '$ipAddress',
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { count: -1 } },
+          { $limit: 5 }
         ])
       ]);
+
+      // Helper function to get location from IP
+      const getLocationFromIP = (ip) => {
+        if (ip === '::1' || ip === '127.0.0.1') {
+          return 'Local Development';
+        } else if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.')) {
+          return 'Private Network';
+        } else if (ip.includes('.')) {
+          return 'Public IP';
+        } else {
+          return 'IPv6 Address';
+        }
+      };
+
+      // Process location stats
+      const topLocations = locationStats.map(stat => ({
+        name: getLocationFromIP(stat._id),
+        count: stat.count
+      }));
 
       // Process login metrics
       let totalLogins = 0;
@@ -738,7 +775,7 @@ const userController = {
           failedLogins,
           avgSessionTime,
           topUserAgents: userAgentStats,
-          topLocations: [] // Implement geo-location tracking later if needed
+          topLocations
         }
       });
 
