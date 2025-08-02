@@ -722,16 +722,91 @@ const userController = {
         ])
       ]);
 
-      // Helper function to get location from IP
+      // Enhanced function to get location from IP with detailed classification
       const getLocationFromIP = (ip) => {
-        if (ip === '::1' || ip === '127.0.0.1') {
-          return 'Local Development';
-        } else if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.')) {
-          return 'Private Network';
-        } else if (ip.includes('.')) {
-          return 'Public IP';
-        } else {
-          return 'IPv6 Address';
+        // Localhost (Development)
+        if (ip === '::1' || ip === '::ffff:127.0.0.1') {
+          return 'Local Development (IPv6)';
+        } else if (ip === '127.0.0.1' || ip.startsWith('127.')) {
+          return 'Local Development (IPv4)';
+        }
+        
+        // Private Network Ranges (RFC 1918)
+        else if (ip.startsWith('10.')) {
+          // Class A: 10.0.0.0 to 10.255.255.255
+          return 'Corporate Network (10.x.x.x)';
+        } else if (ip.startsWith('192.168.')) {
+          // Class C: 192.168.0.0 to 192.168.255.255
+          return 'Home/Small Office (192.168.x.x)';
+        } else if (ip.startsWith('172.')) {
+          // Class B: 172.16.0.0 to 172.31.255.255 (need to check range)
+          const secondOctet = parseInt(ip.split('.')[1]);
+          if (secondOctet >= 16 && secondOctet <= 31) {
+            return 'Private Network (172.16-31.x.x)';
+          } else {
+            return 'Unknown Network (172.x.x.x)';
+          }
+        }
+        
+        // Link-local addresses
+        else if (ip.startsWith('169.254.')) {
+          return 'Link-Local (169.254.x.x)';
+        }
+        
+        // Carrier-grade NAT (RFC 6598)
+        else if (ip.startsWith('100.')) {
+          const secondOctet = parseInt(ip.split('.')[1]);
+          if (secondOctet >= 64 && secondOctet <= 127) {
+            return 'Carrier-grade NAT (100.64-127.x.x)';
+          }
+        }
+        
+        // Multicast addresses
+        else if (ip.startsWith('224.') || ip.startsWith('225.') || ip.startsWith('226.') || 
+                 ip.startsWith('227.') || ip.startsWith('228.') || ip.startsWith('229.') ||
+                 ip.startsWith('230.') || ip.startsWith('231.') || ip.startsWith('232.') ||
+                 ip.startsWith('233.') || ip.startsWith('234.') || ip.startsWith('235.') ||
+                 ip.startsWith('236.') || ip.startsWith('237.') || ip.startsWith('238.') ||
+                 ip.startsWith('239.')) {
+          return 'Multicast Address';
+        }
+        
+        // Public IPv4 addresses with basic geolocation hints
+        else if (ip.includes('.') && !ip.includes(':')) {
+          const firstOctet = parseInt(ip.split('.')[0]);
+          
+          // Some basic geographic hints based on common IP ranges
+          if (firstOctet >= 1 && firstOctet <= 126) {
+            return 'Public IP (Class A Range)';
+          } else if (firstOctet >= 128 && firstOctet <= 191) {
+            return 'Public IP (Class B Range)';
+          } else if (firstOctet >= 192 && firstOctet <= 223) {
+            return 'Public IP (Class C Range)';
+          } else {
+            return 'Public IP (Special Range)';
+          }
+        }
+        
+        // IPv6 addresses
+        else if (ip.includes(':')) {
+          if (ip.startsWith('fe80:')) {
+            return 'IPv6 Link-Local';
+          } else if (ip.startsWith('fc00:') || ip.startsWith('fd00:')) {
+            return 'IPv6 Private (Unique Local)';
+          } else if (ip.startsWith('2001:db8:')) {
+            return 'IPv6 Documentation';
+          } else if (ip.startsWith('2001:')) {
+            return 'IPv6 Global (2001::/16)';
+          } else if (ip.startsWith('2002:')) {
+            return 'IPv6 6to4 Tunnel';
+          } else {
+            return 'IPv6 Global Address';
+          }
+        }
+        
+        // Fallback
+        else {
+          return 'Unknown Address Type';
         }
       };
 
