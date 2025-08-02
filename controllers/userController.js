@@ -555,9 +555,21 @@ const userController = {
       
       // Calculate date ranges
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      // Today: Start of current day (00:00:00)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // This week: 7 days ago from start of today
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - 7);
+      
+      // This month: First day of current month
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      // Past 30 days: 30 days ago (more useful for development/testing)
+      const past30Days = new Date(now);
+      past30Days.setDate(past30Days.getDate() - 30);
       
       // Get period start date for analytics
       let analyticsStartDate;
@@ -594,6 +606,7 @@ const userController = {
         newUsersToday,
         newUsersThisWeek,
         newUsersThisMonth,
+        newUsersPast30Days,
         recentUsers,
         // Analytics-based metrics
         loginMetrics,
@@ -610,6 +623,7 @@ const userController = {
         User.countDocuments({ createdAt: { $gte: today } }),
         User.countDocuments({ createdAt: { $gte: startOfWeek } }),
         User.countDocuments({ createdAt: { $gte: startOfMonth } }),
+        User.countDocuments({ createdAt: { $gte: past30Days } }),
         User.find({ isActive: true })
           .select('-password')
           .sort({ createdAt: -1 })
@@ -843,6 +857,7 @@ const userController = {
           newUsersToday,
           newUsersThisWeek,
           newUsersThisMonth,
+          newUsersPast30Days,
           usersByRole: userStats,
           recentUsers: recentUsers.map(user => authService.generateUserResponse(user)),
           // Real system metrics from analytics data
