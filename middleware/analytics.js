@@ -24,17 +24,16 @@ const analyticsMiddleware = [
       req.path.includes('/analytics/') ||
       req.path.startsWith('/static/') ||
       req.path.startsWith('/assets/') ||
-      req.method === 'OPTIONS' || // Skip CORS preflight requests
-      // Skip all non-API routes since this is an SPA (Single Page Application)
-      // All page tracking is handled client-side by RouteTracker
-      (!req.path.startsWith('/api/') && !req.path.startsWith('/health'));
-
-    // Debug logging for testing - temporary
-    if (!shouldSkip) {
-      console.log(
-        `[Analytics] TRACKING: ${req.method} ${req.path} from ${req.ip}`,
-      );
-    }
+      req.path.endsWith('.ico') ||
+      req.path.endsWith('.png') ||
+      req.path.endsWith('.jpg') ||
+      req.path.endsWith('.jpeg') ||
+      req.path.endsWith('.gif') ||
+      req.path.endsWith('.svg') ||
+      req.path.endsWith('.css') ||
+      req.path.endsWith('.js') ||
+      req.path.endsWith('.map') ||
+      req.method === 'OPTIONS'; // Skip CORS preflight requests
 
     // If we should skip tracking, just call next() and return early
     if (shouldSkip) {
@@ -85,11 +84,8 @@ const analyticsMiddleware = [
       // Save analytics data (fire and forget - don't block response)
       Analytics.create(analyticsData)
         .then(() => {
-          console.log(
-            `[Analytics] SAVED: ${analyticsData.method} ${
-              analyticsData.path
-            } - Session: ${analyticsData.sessionId.substring(0, 8)}...`,
-          );
+          // Optional: Log successful analytics saves
+          // console.log(`[Analytics] SAVED: ${analyticsData.method} ${analyticsData.path}`);
         })
         .catch((error) => {
           console.error('Analytics tracking error:', error.message);

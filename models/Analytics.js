@@ -102,7 +102,7 @@ analyticsSchema.virtual('isSuccessful').get(function() {
 });
 
 // Static methods for common queries
-analyticsSchema.statics.getPageViews = function(startDate, endDate, filters = {}) {
+analyticsSchema.statics.getPageViews = async function(startDate, endDate, filters = {}) {
   const query = {
     timestamp: {
       $gte: startDate,
@@ -113,7 +113,13 @@ analyticsSchema.statics.getPageViews = function(startDate, endDate, filters = {}
     ...filters
   };
   
-  return this.countDocuments(query);
+  try {
+    const count = await this.countDocuments(query);
+    return count;
+  } catch (error) {
+    console.error('[Analytics] Error counting page views:', error);
+    return 0;
+  }
 };
 
 analyticsSchema.statics.getUniqueVisitors = function(startDate, endDate, filters = {}) {

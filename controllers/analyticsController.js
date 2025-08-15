@@ -443,6 +443,9 @@ const analyticsController = {
       // Save analytics data
       await Analytics.create(analyticsData);
 
+      // Optional: Log client tracking events
+      // console.log(`📊 Client page view tracked: ${path} - Session: ${sessionId.substring(0, 8)}...`);
+
       res.status(200).json({
         success: true,
         message: 'Analytics event tracked successfully',
