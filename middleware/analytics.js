@@ -37,10 +37,10 @@ const analyticsMiddleware = [
       req.path.endsWith('.map') ||
       req.method === 'OPTIONS' || // Skip CORS preflight requests
       // Skip HTML page requests since client-side tracking handles page views more accurately for SPA
-      (req.method === 'GET' && 
-       req.headers.accept && 
-       req.headers.accept.includes('text/html') &&
-       !req.path.startsWith('/api/'));
+      (req.method === 'GET' &&
+        req.headers.accept &&
+        req.headers.accept.includes('text/html') &&
+        !req.path.startsWith('/api/'));
 
     // If we should skip tracking, just call next() and return early
     if (shouldSkip) {

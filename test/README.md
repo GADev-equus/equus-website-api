@@ -5,12 +5,15 @@ This directory contains test scripts and utilities for the Equus Website API.
 ## Available Tests
 
 ### Analytics Tests
+
 - `test-analytics.js` - Real-time analytics monitoring script
+
   - Monitors database for new analytics entries
   - Helps verify that duplicate tracking has been resolved
   - Usage: `node test/test-analytics.js`
 
 - `analytics-stats.js` - Analytics database statistics
+
   - Shows total entries, method breakdown, top paths, recent entries
   - Usage: `node test/analytics-stats.js`
 
@@ -40,6 +43,7 @@ node test/test-analytics.js
 ## Test Database
 
 Tests use the same database as the development environment:
+
 - Database: `equus-systems`
 - Connection: `mongodb://localhost:27017/equus-systems`
 
@@ -56,6 +60,7 @@ To verify the analytics duplicate fix is working:
 ## Adding New Tests
 
 When adding new test files:
+
 1. Place them in this `/test` directory
 2. Use descriptive names starting with `test-`
 3. Update this README with usage instructions

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Analytics = require('../models/Analytics');
+const Analytics = require('./models/Analytics');
 
 console.log('🚀 Starting analytics monitor...');
 
