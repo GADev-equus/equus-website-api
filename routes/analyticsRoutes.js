@@ -5,8 +5,9 @@ const { auth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
 const { adminActionLimiter } = require('../middleware/rateLimiter');
 
-// Public analytics route (no authentication required)
+// Public analytics routes (no authentication required)
 router.get('/public/page-views', analyticsController.getPublicPageViews);
+router.post('/track', analyticsController.trackClientEvent);
 
 // All other analytics routes require authentication and admin role
 router.use(auth);
