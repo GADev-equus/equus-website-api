@@ -3,6 +3,8 @@ const { optionalAuth } = require('./auth');
 const { v4: uuidv4 } = require('uuid');
 
 // Analytics middleware that tracks page views and requests
+// Note: This middleware now focuses on API requests and server-side operations.
+// Page views in the SPA are tracked by client-side usePageMonitor hook for better accuracy.
 const analyticsMiddleware = [
   optionalAuth,
   (req, res, next) => {
@@ -33,7 +35,12 @@ const analyticsMiddleware = [
       req.path.endsWith('.css') ||
       req.path.endsWith('.js') ||
       req.path.endsWith('.map') ||
-      req.method === 'OPTIONS'; // Skip CORS preflight requests
+      req.method === 'OPTIONS' || // Skip CORS preflight requests
+      // Skip HTML page requests since client-side tracking handles page views more accurately for SPA
+      (req.method === 'GET' && 
+       req.headers.accept && 
+       req.headers.accept.includes('text/html') &&
+       !req.path.startsWith('/api/'));
 
     // If we should skip tracking, just call next() and return early
     if (shouldSkip) {
